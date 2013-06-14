@@ -1,0 +1,286 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Jeu du moulin</title>
+
+<meta name="description" content="Le jeu du moulin - Jouez à plusieurs, ou seul contre l'ordinateur !" />
+
+<link href="css/bootstrap.css" rel="stylesheet">
+<link href="css/bootstrap.todc.css" rel="stylesheet">
+<link href="css/game.css" rel="stylesheet">
+
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/jquery.sisyphus.js"></script>
+<script type="text/javascript" src="js/bootstrap.js"></script>
+<script type="text/javascript" src="js/game/game.js"></script>
+<script type="text/javascript" src="js/game/game.human.js"></script>
+<script type="text/javascript" src="js/game/game.computer.js"></script>
+</head>
+
+
+
+<body onload="game.start();" style="padding:20px">
+<div class="row-fluid">
+	<div class="span4">
+        <div class="well">
+        	<h4>Journal de jeu</h4>
+            <h5>C'est au tour de <span id="curPlayer"></span></h5>
+            <div id="logs">
+            
+            </div>
+        </div>
+        
+        <input type="button" class="btn btn-primary" value="Nouvelle partie" onclick="window.location=window.location" />
+    </div>
+    
+	<div class="span4 well">
+        <div id="board">
+            <div class="piece line1 col1" id="piece11" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line1 col4" id="piece14" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line1 col7" id="piece17" onclick="game.human.onclickPiece($(this));"></div>
+        
+            <div class="piece line2 col2" id="piece22" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line2 col4" id="piece24" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line2 col6" id="piece26" onclick="game.human.onclickPiece($(this));"></div>
+        
+            <div class="piece line3 col3" id="piece33" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line3 col4" id="piece34" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line3 col5" id="piece35" onclick="game.human.onclickPiece($(this));"></div>
+        
+            <div class="piece line4 col1" id="piece41" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line4 col2" id="piece42" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line4 col3" id="piece43" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line4 col5" id="piece45" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line4 col6" id="piece46" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line4 col7" id="piece47" onclick="game.human.onclickPiece($(this));"></div>
+            
+            <div class="piece line5 col3" id="piece53" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line5 col4" id="piece54" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line5 col5" id="piece55" onclick="game.human.onclickPiece($(this));"></div>
+            
+            <div class="piece line6 col2" id="piece62" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line6 col4" id="piece64" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line6 col6" id="piece66" onclick="game.human.onclickPiece($(this));"></div>
+            
+            <div class="piece line7 col1" id="piece71" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line7 col4" id="piece74" onclick="game.human.onclickPiece($(this));"></div>
+            <div class="piece line7 col7" id="piece77" onclick="game.human.onclickPiece($(this));"></div>
+        </div>
+        <div class="history">
+        	<i class="icon-step-backward" onclick="game.stepBackward();" style="display:none;"></i>
+        	<i class="icon-play" onclick="game.setPlay();" style="display:none;"></i>
+        	<i class="icon-pause" onclick="game.setPaused();"></i>
+        </div>
+    </div>
+    
+    <div id="rules" class="span4">
+        <div class="phase1 well">
+        
+        	<div id="report">
+	            <h4>Première Phase</h4>
+    
+            	<div>
+                    <h5>Joueur 1 :</h5>
+                    <div class="piece black"></div>
+                    <div class="piece black"></div>
+                    <div class="piece black"></div>
+                    <div class="piece black"></div>
+                    <div class="piece black"></div>
+                    <div class="piece black"></div>
+                    <div class="piece black"></div>
+                    <div class="piece black"></div>
+                    <div class="piece black"></div>
+                    <div class="clearfix"></div>
+                </div>
+                <div style="margin-top:20px">
+                    <h5>Joueur 2 :</h5>
+                    <div class="piece white"></div>
+                    <div class="piece white"></div>
+                    <div class="piece white"></div>
+                    <div class="piece white"></div>
+                    <div class="piece white"></div>
+                    <div class="piece white"></div>
+                    <div class="piece white"></div>
+                    <div class="piece white"></div>
+                    <div class="piece white"></div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+            
+        	<h5>Règles du jeu :</h5>
+            <p>Le jeu commence avec un plateau vide. Les joueurs placent à tour de rôle leurs pions sur un point libre du plateau. Pendant cette phase, il est interdit de déplacer les pions déjà placés sur le plateau. Si un joueur forme un moulin, il retire un pion (en dehors d’un moulin éventuel) à son adversaire.</p>
+        </div>
+        
+        <div class="phase2 well" style="display:none">
+        	<h4>Phase 2 :</h4>
+            <p>Une fois tous les pions placés (18 pions), chaque joueur déplace à tour de rôle un de ses pions sur un point adjacent libre d’une même ligne. Le but est de faire des lignes de 3 pions de sa couleur pour enlever du plateau un pion de l’adversaire qui ne fait pas partie d’un moulin (une ligne de 3 pions de son adversaire).</p>
+            <p> Phase de déplacement puis suppression : Dès qu'un joueur n'a plus que trois pions sur le plateau, il déplace librement ses pions (un par un et dès qu’il s’agit de son tour de jeu) sur n'importe quel point vide du plateau.</p>
+        </div>
+        
+        <div class="benchResult well" style="display:none">
+        	<table class="table table-bordered">
+                <thead>
+                	<tr>
+                		<th></th>
+                		<th>Joueur 1</th>
+                		<th>Joueur 2</th>
+                	</tr>
+                </thead>
+                <tbody>
+                	<tr>
+                		<td>Niveau</td>
+                		<td id="player1level"></td>
+                		<td id="player2level"></td>
+                	</tr>
+                	<tr>
+                		<td>Victoires</td>
+                		<td id="player1win">0</td>
+                		<td id="player2win">0</td>
+                	</tr>
+                	<tr>
+                		<td>Match nul</td>
+                		<td colspan="2" id="nulGame">0</td>
+                	</tr>
+                </tbody>
+            </table>
+            
+            <p>Temps moyen par partie : <span id="benchAvTime">0</span>ms</p>
+        </div>
+    </div>
+</div>
+
+<div id="new-game" class="modal hide fade">
+	<form onsubmit="game.createGame(); return false;" style="margin:0;" id="new-game-form">
+  	<div class="modal-header">
+    	<h3 class="pull-left">Nouvelle Partie</h3>
+        
+        <select name="gameSpeed" class="pull-right" style="margin:0;">
+            <option value="1200">Vitesse - Lente</option>
+            <option selected="selected" value="800">Vitesse - Normale</option>
+            <option value="400">Vitesse - Rapide</option>
+        </select>
+        <div class="clearfix"></div>
+  	</div>
+  	<div class="modal-body">
+    	<div class="row-fluid">            
+            <div class="span6">
+                <h4>Joueur 1 - Noir :</h4>
+                <label class="radio">
+                    <input type="radio" name="player1" checked="checked" value="1" onchange="$(this).parent().parent().children('.level-select').toggle();" /> Humain
+                </label>
+                <label class="radio">
+                    <input type="radio" name="player1" value="2" onchange="$(this).parent().parent().children('.level-select').toggle();" /> Ordinateur
+                </label>
+                
+                <div class="level-select" style="display:none;">
+                    <h5>Niveau :</h5>
+                    <label class="radio">
+                        <input type="radio" checked="checked" name="player1level" value="1" /> Novice
+                    </label>
+                    <label class="radio">
+                        <input type="radio" name="player1level" value="2" /> Confirmé
+                    </label>
+                    <label class="radio">
+                        <input type="radio" name="player1level" value="3" /> Expert
+                    </label>
+                </div>
+            </div>
+            
+            <div class="span6">
+                <h4>Joueur 2 - Blanc :</h4>
+                <label class="radio">
+                    <input type="radio" name="player2" value="1" onchange="$(this).parent().parent().children('.level-select').toggle();" /> Humain
+                </label>
+                <label class="radio">
+                    <input type="radio" name="player2" checked="checked" value="2" onchange="$(this).parent().parent().children('.level-select').toggle();" /> Ordinateur
+                </label>
+                
+                <div class="level-select">
+                    <h5>Niveau :</h5>
+                    <label class="radio">
+                        <input type="radio" checked="checked" name="player2level" value="1" /> Novice
+                    </label>
+                    <label class="radio">
+                        <input type="radio" name="player2level" value="2" /> Confirmé
+                    </label>
+                    <label class="radio">
+                        <input type="radio" name="player2level" value="3" /> Expert
+                    </label>
+                </div>
+            </div>        
+        </div>
+	</div>
+  	<div class="modal-footer">
+    	<a class="btn pull-left" onclick="$('#new-game').modal('hide'); $('#new-bench').modal({backdrop: false});"><i class="icon-fire"></i> Benchmark</a>
+    	<button type="submit" class="btn btn-primary">Jouer <i class="icon-play icon-white"></i></button>
+  	</div>
+    </form>
+</div>
+
+<div id="new-bench" class="modal hide fade">
+	<form onsubmit="game.submitNewBench(); return false;" style="margin:0;">
+  	<div class="modal-header">
+    	<h3>Nouveau Benchmark</h3>
+  	</div>
+  	<div class="modal-body">
+    	<div class="row-fluid">
+            <div class="span6">
+                <h4>Joueur 1 - Noir :</h4>
+                <h5>Niveau :</h5>
+                <label class="radio">
+                    <input type="radio" name="player1level" value="1" /> Novice
+                </label>
+                <label class="radio">
+                    <input type="radio" checked="checked" name="player1level" value="2" /> Confirmé
+                </label>
+                <label class="radio">
+                    <input type="radio" name="player1level" value="3" /> Expert
+                </label>
+            </div>
+            
+            <div class="span6">
+                <h4>Joueur 2 - Blanc :</h4>
+                <h5>Niveau :</h5>
+                <label class="radio">
+                    <input type="radio" name="player2level" value="1" /> Novice
+                </label>
+                <label class="radio">
+                    <input type="radio" checked="checked" name="player2level" value="2" /> Confirmé
+                </label>
+                <label class="radio">
+                    <input type="radio" name="player2level" value="3" /> Expert
+                </label>
+            </div>        
+        </div>
+        <div>
+        	<h5>Nombre de parties</h5>
+        	<input type="text" name="roundNumber" value="10" />
+        </div>
+	</div>
+  	<div class="modal-footer">
+    	<button type="submit" class="btn btn-primary pull-left"><i class="icon-fire icon-white"></i> Lancer le Bench</button>
+        
+        <a class="btn" onclick="$('#new-bench').modal('hide'); $('#new-game').modal({backdrop: false});">Partie classique <i class="icon-play"></i></a>
+  	</div>
+    </form>
+</div>
+
+<div id="party-end" class="modal hide fade">
+  	<div class="modal-header">
+    	<h1>Fin de la partie</h1>
+  	</div>
+  	<div class="modal-body">
+    	<h2>Résultat :</h2>
+        <h3 class="result"></h3>
+
+    	<h2>Durée de la partie :</h2>
+        <h3 class="elapse-time"></h3>
+	</div>
+  	<div class="modal-footer">
+    	<input type="button" class="btn btn-primary" value="Rejouer une partie !" onclick="window.location=window.location" />
+  	</div>
+</div>
+
+</body>
+</html>
