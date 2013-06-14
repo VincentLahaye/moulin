@@ -230,6 +230,44 @@ if(!game.computer){
 		return false;
 	}
 	
+	/**
+	 * L'ordinateur essaie de trouver une combinaison potentiellement gagnante 
+	 * pour le joueur, afin de placer un pion et terminer une ligne avant lui.
+	 **/
+	game.computer.tryToMoveForCounter = function(){		
+		// On boucle sur toutes les combinaison possible
+		for(var i = 0; i < game.mills.length; i++){
+			
+			// On s'attarde sur la ligne uniquement si elle n'est pas déjà complétée.
+			if(game.mills[i].check == false){
+				
+				// On récupère les infos sur la ligne courante
+				var lineData = game.getPieceOnLine(i);
+				
+				// Si le joueur dispose de 2/3 piece, et que le computer n'en a pas, c'est qu'il y'a un coup à bloquer.
+				// On fait un jet de dé pour définir si le computer a "vu" ou non le coup à jouer.
+				if(lineData.enemyCount == 2 && lineData.playerCount == 0 && game.computer.diceRoll()){
+					
+					var target = lineData.available[0];
+					var targetID = parseInt(target.attr('id').replace(new RegExp("piece"), ""));
+					
+					for(var j = 0; j < game.movement[targetID].length; j++){
+						var possibleMoveID = game.movement[targetID][j];
+						var possibleMove = $("#piece" + possibleMoveID);
+												
+						// Si un pion est sur la case, et que c'est le notre
+						if(!game.isFree(possibleMove) && possibleMove.hasClass(game.player.color)){
+							console.log(game.player.name + " a trouver un coup à contrer");
+							return {starting: possibleMove, arrival: target};
+						}
+					}					
+				}
+			}
+		}
+		
+		return false;
+	}
+	
 	game.computer.getStrategies = function(){
 		if(game.player.strategies[0]){
 						
@@ -268,10 +306,13 @@ if(!game.computer){
 			var move = game.computer.getStrategies();
 			
 			if(move == false)
-				move = game.computer.findTargetMoveExistingMill();
+				move = game.computer.tryToMoveForCounter();
 			
 			if(move == false)
 				move = game.computer.findMoveForNewMill(1);
+				
+			if(move == false)
+				move = game.computer.findTargetMoveExistingMill();
 	
 			if(move == false)
 				move = game.computer.findMoveForNewMill(2);
