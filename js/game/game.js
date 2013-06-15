@@ -173,7 +173,7 @@ game.watch("phase", function(prop,oldval,newval){
 		if(game.bench && game.bench.player1level && game.bench.player2level){
 			var player1level = game.bench.player1level;
 			var player2level = game.bench.player2level;
-			var player1type = player2type = 2;
+			var player1type = 2, player2type = 2;
 			
 			game.defaultSleep = 1;
 
@@ -318,17 +318,11 @@ game.watch("phase", function(prop,oldval,newval){
 					game.roundBeforeNul = 10;
 				}
 			}
-			
-			if(game.player.type == 2){
-				/*if(game.bench)
-					game.computer.play();
-				else*/
-					setTimeout(game.computer.play, game.defaultSleep);
-			} else {
-				if(game.player.placedPiece > 1 && !game.computer.findRandomMove()){
-					game.endParty(game.enemy);
-				}
-			}
+						
+			if(game.player.type == 2)
+				setTimeout(game.computer.play, game.defaultSleep);
+			else if(game.player.placedPiece > 1 && !game.computer.findRandomMove())
+				game.endParty(game.enemy);
 		}
 	}
 	
@@ -466,19 +460,22 @@ game.watch("phase", function(prop,oldval,newval){
 	 **/
 	game.getPieceOnLine = function(line){
 		var playerCount = 0, enemyCount = 0;
-		var available = [];
+		var available = [], enemyPiece = [];
 		
 		for(var i = 0; i < 3; i++){
-			if($('#piece' + game.mills[line].piece[i]).hasClass(game.enemy.color)){
+			var piece = $('#piece' + game.mills[line].piece[i]);
+			
+			if(piece.hasClass(game.enemy.color)){
 				enemyCount++;
-			} else if($('#piece' + game.mills[line].piece[i]).hasClass(game.player.color)){
+				enemyPiece.push(piece);
+			} else if(piece.hasClass(game.player.color)){
 				playerCount++;
 			} else {
-				available.push($('#piece' + game.mills[line].piece[i]));
+				available.push(piece);
 			}
 		}
 		
-		return {enemyCount: enemyCount, playerCount: playerCount, available: available};
+		return {enemyCount: enemyCount, playerCount: playerCount, available: available, enemyPiece: enemyPiece};
 	}
 	
 	/**
@@ -492,7 +489,8 @@ game.watch("phase", function(prop,oldval,newval){
 				alert('Ce pion fait parti d\'un moulin, vous ne pouvez pas le supprimer.');
 			} else {
 				// On enlève le pion de l'adversaire du plateau de jeu
-				$(target).removeClass(game.enemy.color);
+				
+				$(target).removeClass(game.enemy.color);				
 				game.enemy.placedPiece--;
 				
 				game.roundWithoutWin = 0;
@@ -542,9 +540,27 @@ game.watch("phase", function(prop,oldval,newval){
 			// Est-ce que l'emplacement est libre ?
 			if(game.isFree(arrivalPoint)){
 				
-				// On déplace le pion
-				startingPoint.removeClass(game.player.color);
-				arrivalPoint.addClass(game.player.color);
+				if(game.bench){
+					startingPoint.removeClass(game.player.color);
+					arrivalPoint.addClass(game.player.color);
+				} else {
+					var sPos = startingPoint.position();
+					var aPos = arrivalPoint.position();
+					
+					var clone = $('<div class="piece '+ game.player.color +'" style="top:'+sPos.top+'px;left:'+sPos.left+'px"></div>');
+					
+					$("#board").append(clone);
+					
+					startingPoint.removeClass(game.player.color);
+					
+					arrivalPoint.hide();
+					arrivalPoint.addClass(game.player.color);
+					
+					clone.animate({top: aPos.top + 'px', left: aPos.left + 'px'}, 200, function(){
+						clone.remove();
+						arrivalPoint.show();
+					});
+				}
 				
 				return true;
 			}
@@ -562,7 +578,7 @@ game.watch("phase", function(prop,oldval,newval){
 		return (!location.hasClass(game.enemy.color) && !location.hasClass(game.player.color));
 	}
 		
-	game.displayLogs = function(msg){
+	game.displayLogs = function(){
 		var data = "";
 		
 		for(var i = 0; i < game.logs.length; i++){

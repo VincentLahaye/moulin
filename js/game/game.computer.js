@@ -32,7 +32,7 @@ if(!game.computer){
 				
 				// On récupère les infos sur la ligne courante
 				var lineData = game.getPieceOnLine(i);
-				
+				console.log(lineData);
 				// Si le joueur dispose de 2/3 piece, et que le computer n'en a pas, c'est qu'il y'a un coup à bloquer.
 				// On fait un jet de dé pour définir si le computer a "vu" ou non le coup à jouer.
 				if(lineData.enemyCount == 2 && lineData.playerCount == 0 && game.computer.diceRoll()){
@@ -70,9 +70,26 @@ if(!game.computer){
 	}
 	
 	game.computer.TryToRemoveEnemyPiece = function(){
+		for(var i = 0; i < game.mills.length; i++){
+			
+			// On s'attarde sur la ligne uniquement si elle n'est pas déjà complétée.
+			if(game.mills[i].check == false){
+				
+				// On récupère les infos sur la ligne courante
+				var lineData = game.getPieceOnLine(i);
+				
+				// Si le joueur dispose de 2/3 piece, et que le computer n'en a pas, c'est qu'il y'a un coup à bloquer.
+				// On fait un jet de dé pour définir si le computer a "vu" ou non le coup à jouer.
+				if(lineData.enemyCount == 2 && lineData.playerCount == 0 && game.computer.diceRoll() && !game.checkIfPieceIsInMill(lineData.enemyPiece[0])){
+				
+					game.removePiece(lineData.enemyPiece[0]);
+					game.millCheck();
+					return true;
+				}
+			}
+		}
 
 		finished = false;
-		
 		while(finished == false){
 			var row = Math.floor((Math.random()*15)+1);
 			var col = Math.floor((Math.random()*3));
@@ -83,7 +100,6 @@ if(!game.computer){
 					game.removePiece(target);
 					game.millCheck();
 					return true;
-					break;
 				}
 			}
 		}
@@ -116,7 +132,7 @@ if(!game.computer){
 				var lineData = game.getPieceOnLine(i);
 				
 				// On vérifie que ce mill est bien le notre
-				if(lineData.playerCount == 3 && game.computer.diceRoll()){
+				if(lineData.playerCount == 3){
 					
 					// Pour chaque pion de ce mill
 					for(var j = 0; j < 3; j++){
@@ -158,43 +174,47 @@ if(!game.computer){
 				var lineData = game.getPieceOnLine(i);
 				
 				// On constate qu'un mill est potentiellement fesable
-				if(lineData.playerCount == 2 && lineData.enemyCount == 0 && game.computer.diceRoll()){
+				if(lineData.playerCount == 2 && lineData.enemyCount == 0){
 					// On boucle sur toutes les mouvements possible de la case
 					var availableMove = lineData.available[0];
 					var availableMoveID = parseInt(availableMove.attr('id').replace(new RegExp("piece"), ""));
 					
-					for(var j = 0; j < game.movement[availableMoveID].length; j++){
-						var possibleMoveID = game.movement[availableMoveID][j];
-						var possibleMove = $("#piece" + possibleMoveID);
+					if(game.player.placedPiece <= 3){
 						
-						deep--;
-						
-						// Si un pion est sur la case, et que c'est le notre
-						if(!game.isFree(possibleMove) && possibleMove.hasClass(game.player.color) && game.mills[i].piece.indexOf(possibleMoveID) == -1){
-							console.log(game.player.name + " a trouvé un mouvement gagnant en 1 coup");
-							return {starting: possibleMove, arrival: availableMove};
-						} else if(game.isFree(possibleMove) && deep > 0){
+					} else {
+						for(var j = 0; j < game.movement[availableMoveID].length; j++){
+							var possibleMoveID = game.movement[availableMoveID][j];
+							var possibleMove = $("#piece" + possibleMoveID);
 							
-							for(var k = 0; k < game.movement[possibleMoveID].length; k++){
-								var possibleMoveID2 = game.movement[possibleMoveID][k];
-								var possibleMove2 = $("#piece" + possibleMoveID2);
-								
-								deep--;
-								
-								if(!game.isFree(possibleMove2) && possibleMove2.hasClass(game.player.color) && game.mills[i].piece.indexOf(possibleMoveID2) == -1){
-									game.player.strategies.push({starting: possibleMove, arrival: availableMove});
-									console.log(game.player.name + " a trouvé un mouvement gagnant en 2 coups");
-									return {starting: possibleMove2, arrival: possibleMove};
-								} else if(game.isFree(possibleMove2) && deep > 0){
+							deep--;
 							
-									for(var l = 0; l < game.movement[possibleMoveID2].length; l++){
-										var possibleMoveID3 = game.movement[possibleMoveID2][l];
-										var possibleMove3 = $("#piece" + possibleMoveID3);
-																				
-										if(!game.isFree(possibleMove3) && possibleMove3.hasClass(game.player.color) && game.mills[i].piece.indexOf(possibleMoveID3) == -1){
-											game.player.strategies.push({starting: possibleMove2, arrival: possibleMove});
-											console.log(game.player.name + " a trouvé un mouvement gagnant en 3 coups");
-											return {starting: possibleMove3, arrival: possibleMove2};
+							// Si un pion est sur la case, et que c'est le notre
+							if(!game.isFree(possibleMove) && possibleMove.hasClass(game.player.color) && game.mills[i].piece.indexOf(possibleMoveID) == -1){
+								console.log(game.player.name + " a trouvé un mouvement gagnant en 1 coup");
+								return {starting: possibleMove, arrival: availableMove};
+							} else if(game.isFree(possibleMove) && deep > 0){
+								
+								for(var k = 0; k < game.movement[possibleMoveID].length; k++){
+									var possibleMoveID2 = game.movement[possibleMoveID][k];
+									var possibleMove2 = $("#piece" + possibleMoveID2);
+									
+									deep--;
+									
+									if(!game.isFree(possibleMove2) && possibleMove2.hasClass(game.player.color) && game.mills[i].piece.indexOf(possibleMoveID2) == -1){
+										game.player.strategies.push({starting: possibleMove, arrival: availableMove});
+										console.log(game.player.name + " a trouvé un mouvement gagnant en 2 coups");
+										return {starting: possibleMove2, arrival: possibleMove};
+									} else if(game.isFree(possibleMove2) && deep > 0){
+								
+										for(var l = 0; l < game.movement[possibleMoveID2].length; l++){
+											var possibleMoveID3 = game.movement[possibleMoveID2][l];
+											var possibleMove3 = $("#piece" + possibleMoveID3);
+																					
+											if(!game.isFree(possibleMove3) && possibleMove3.hasClass(game.player.color) && game.mills[i].piece.indexOf(possibleMoveID3) == -1){
+												game.player.strategies.push({starting: possibleMove2, arrival: possibleMove});
+												console.log(game.player.name + " a trouvé un mouvement gagnant en 3 coups");
+												return {starting: possibleMove3, arrival: possibleMove2};
+											}
 										}
 									}
 								}
@@ -222,7 +242,6 @@ if(!game.computer){
 			}
 			
 			if(game.isFree(possibleTarget)){
-				console.log(game.player.name + " fait un mouvement aléatoire");
 				return {starting: $("#piece" + startingPointID), arrival: possibleTarget};
 			}			
 		}
@@ -246,21 +265,29 @@ if(!game.computer){
 				
 				// Si le joueur dispose de 2/3 piece, et que le computer n'en a pas, c'est qu'il y'a un coup à bloquer.
 				// On fait un jet de dé pour définir si le computer a "vu" ou non le coup à jouer.
-				if(lineData.enemyCount == 2 && lineData.playerCount == 0 && game.computer.diceRoll()){
+				if(lineData.enemyCount == 2 && lineData.playerCount == 0){
 					
 					var target = lineData.available[0];
 					var targetID = parseInt(target.attr('id').replace(new RegExp("piece"), ""));
 					
-					for(var j = 0; j < game.movement[targetID].length; j++){
-						var possibleMoveID = game.movement[targetID][j];
-						var possibleMove = $("#piece" + possibleMoveID);
-												
-						// Si un pion est sur la case, et que c'est le notre
-						if(!game.isFree(possibleMove) && possibleMove.hasClass(game.player.color)){
-							console.log(game.player.name + " a trouver un coup à contrer");
-							return {starting: possibleMove, arrival: target};
+					if(game.player.placedPiece <= 3){
+						var pieces = $("#board .piece." + game.player.color);
+						var piece = $(pieces[Math.floor(Math.random()* pieces.length)]);
+						
+						console.log(game.player.name + " a trouver un coup à contrer (en volant)");
+						return {starting: piece, arrival: target};
+					} else {
+						for(var j = 0; j < game.movement[targetID].length; j++){
+							var possibleMoveID = game.movement[targetID][j];
+							var possibleMove = $("#piece" + possibleMoveID);
+													
+							// Si un pion est sur la case, et que c'est le notre
+							if(!game.isFree(possibleMove) && possibleMove.hasClass(game.player.color)){
+								console.log(game.player.name + " a trouver un coup à contrer");
+								return {starting: possibleMove, arrival: target};
+							}
 						}
-					}					
+					}
 				}
 			}
 		}
@@ -311,15 +338,14 @@ if(!game.computer){
 			if(move == false)
 				move = game.computer.findMoveForNewMill(1);
 				
-			if(move == false)
+			if(move == false && game.computer.diceRoll())
 				move = game.computer.findTargetMoveExistingMill();
 	
-			if(move == false)
+			if(move == false && game.computer.diceRoll())
 				move = game.computer.findMoveForNewMill(2);
 					
-			if(move == false)
-				if(game.computer.diceRoll())
-					move = game.computer.findMoveForNewMill(3);
+			if(move == false && game.computer.diceRoll())
+				move = game.computer.findMoveForNewMill(3);
 				
 			if(move == false)
 				move = game.computer.findRandomMove();
@@ -331,7 +357,6 @@ if(!game.computer){
 	}
 		
 	game.computer.play = function(){
-		console.debug(game.phase);
 		switch (game.phase){
 			case 0:
 				return false;
