@@ -7,6 +7,7 @@ if(!game.human){
 	 * Déclenchée lorsqu'un humain clique sur un emplacement du plateau de jeu
 	 **/
 	game.human.onclickPiece = function(domElement){
+		// Si le jeu est en pause, ou que c'est le tour d'une AI de jouer, alors on ne fait rien
 		if(game.player.type == 2 || game.paused == 1)
 			return false;
 			
@@ -26,6 +27,7 @@ if(!game.human){
 							} else {
 								// Si oui, on met le "game.state" à 1 en vu de la suppresion d'un piece du computer
 								game.state = 1;
+								$("#logs").append('<div class="alert alert-info">Cliquez sur un pion adverse pour le supprimer.</div>');
 							}
 						} else {
 							game.endTurn();
@@ -35,17 +37,14 @@ if(!game.human){
 					
 				case 1:
 					if(game.removePiece(domElement)){
+						$("#logs").html("");
 						game.state = 0;
 						game.endTurn();
 					}
 					break;
 			}
-			
-			// 1ere game.phase de jeu (on pose les pions)
-			//game.human.game.phase1(domElement);
-		} else {
-			// 2eme game.phase de jeu
-			//game.human.game.phase2(domElement);
+		} else {			
+			$("#logs").html("");
 			
 			if(game.player.placedPiece == 2){
 				game.endParty(game.enemy);
@@ -54,7 +53,7 @@ if(!game.human){
 			switch (game.state){
 				default:
 				case 0:
-					//game.logs("Sélectionnez un pion à déplacer.");
+					
 					if(!$(domElement).hasClass(game.player.color)){
 						console.log("Veuillez sélectionner un de VOS pions.");
 					} else {
@@ -69,6 +68,7 @@ if(!game.human){
 					
 				case 1:
 					if(game.removePiece(domElement)){
+						$("#logs").html("");
 						game.state = 0;
 						game.endTurn();
 					}
@@ -81,6 +81,7 @@ if(!game.human){
 					if(game.movePiece(startingPoint, arrivalPoint)){
 						// On vérifie si une nouvelle ligne a été complétée
 						if(game.millCheck() && game.checkIfOnePieceExistOutOfMill()){
+							$("#logs").append('<div class="alert alert-info">Cliquez sur un pion adverse pour le supprimer.</div>');
 							game.state = 1;
 						} else {
 							game.state = 0;

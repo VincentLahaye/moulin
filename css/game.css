@@ -34,6 +34,16 @@ body{
 	border:1px solid rgba(1,1,1, 0.8);
 }
 
+.black-clone{
+	background-color: #000;
+	border:1px solid rgba(1,1,1, 0.5);
+}
+
+.white-clone{
+	background-color: #FFF;
+	border:1px solid rgba(1,1,1, 0.8);
+}
+
 .waiting{
 	border: 1px solid #F0F;
 	 box-shadow: 0 0 10px rgba(1,1,1, 0.5);
@@ -45,13 +55,13 @@ body{
 .line1{top: 7px;}
 .line2{top: 52px;}
 .line3{top: 92px;}
-.line4{top:153px;}
+.line4{top: 153px;}
 .line5{top: 214px;}
 .line6{top: 254px;}
 .line7{top: 298px;}
 
 .col1{left: 7px;}
-.col2{left:53px;}
+.col2{left: 53px;}
 .col3{left: 92px;}
 .col4{left: 153px;}
 .col5{left: 214px;}

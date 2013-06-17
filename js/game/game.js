@@ -1,56 +1,16 @@
-// object.watch
-if (!Object.prototype.watch) {
-	Object.defineProperty(Object.prototype, "watch", {
-		  enumerable: false
-		, configurable: true
-		, writable: false
-		, value: function (prop, handler) {
-			var
-			  oldval = this[prop]
-			, newval = oldval
-			, getter = function () {
-				return newval;
-			}
-			, setter = function (val) {
-				oldval = newval;
-				return newval = handler.call(this, prop, oldval, val);
-			}
-			;
-			
-			if (delete this[prop]) { // can't watch constants
-				Object.defineProperty(this, prop, {
-					  get: getter
-					, set: setter
-					, enumerable: true
-					, configurable: true
-				});
-			}
-		}
-	});
-}
- 
-// object.unwatch
-if (!Object.prototype.unwatch) {
-	Object.defineProperty(Object.prototype, "unwatch", {
-		  enumerable: false
-		, configurable: true
-		, writable: false
-		, value: function (prop) {
-			var val = this[prop];
-			delete this[prop]; // remove accessors
-			this[prop] = val;
-		}
-	});
-}
-
+/**
+ * Initialisation de notre module game
+ **/
 if(!game){
 	var game = {};
 }
 
-game.watch("phase", function(prop,oldval,newval){
-	if(newval == 0 && game.bench){
-		if(game.bench.number > 0){
-			console.log("newBench");
+/**
+ * Permet la surveillance de l'état de game.phase. Dès qu'un changement est opéré sur cette variable, on déclenche la fonction ci dessous.
+ **/
+game.watch("phase", function(prop, oldval, newval){
+	if(newval == 0 && game.bench){ // Si la partie en cours viens de se terminer, et que nous sommes dans un benchmark
+		if(game.bench.number > 0){ // Si il reste encore des benchmark à effectuer
 			game.bench.number--;
 			setTimeout(game.createGame, 100);
 		} else {
@@ -58,6 +18,7 @@ game.watch("phase", function(prop,oldval,newval){
 			$(".benchResult").append("<p>Temps total du Benchmark : <strong>"+ t +"</strong></p>");
 		}
 	}
+	
 	return newval;
 });
 
@@ -225,6 +186,10 @@ game.watch("phase", function(prop,oldval,newval){
 	
 	/**
 	 * Création d'un bench
+	 * 
+	 * @param {Integer} player1level : Niveau du joueur 1
+	 * @param {Integer} player2level : Niveau du joueur 2
+	 * @param {Integer} benchNumber : Nombre de roundà effectuer
 	 **/
 	game.createBench = function(player1level, player2level, benchNumber){
 		game.bench = {};
@@ -305,6 +270,10 @@ game.watch("phase", function(prop,oldval,newval){
 			if(game.phase == 1){
 				// On vérife qu'il reste encore des piece aux joueurs, sinon on lance la game.phase 2.
 				if(game.player.piece == 0 && game.enemy.piece == 0){
+					
+					if(game.player.type == 1)
+						$("#logs").append('<div class="alert alert-info">Phase 2 : Déplacez vos pions !</div>');
+					
 					$("#rules .phase1").hide();
 					$("#rules .phase2").show();
 					game.phase = 2;
@@ -328,6 +297,9 @@ game.watch("phase", function(prop,oldval,newval){
 	
 	/**
 	 * Return "true" si une ligne forme un moulin complet
+	 * 
+	 * @param {Integer} line : ID d'un moulin dans le tableau game.mills[]
+	 * @return {Boolean} : true si toutes les cases d'un moulin sont occupées par le même joueur
 	 **/
 	game.isMill = function(line){
 		return ($('#piece' + game.mills[line].piece[0]).hasClass(game.player.color) &&
@@ -341,6 +313,8 @@ game.watch("phase", function(prop,oldval,newval){
 	/**
 	 * Permet le changement de joueur courant
 	 * Si pas de paramètre, on effectue un changemnt de joueur classique
+	 * 
+	 * @param {Integer} player : (ID du joueur : 1 ou 2) OU rien (si rien, on interverti les joueurs) 
 	 **/
 	game.setCurrentPlayer = function(player){
 		if(!game.player)
@@ -361,24 +335,18 @@ game.watch("phase", function(prop,oldval,newval){
 		} else if(player == 2) {
 			game.player = game.players.player2;
 			game.enemy = game.players.player1;
-		} else {
-			
-			var oldPlayer = game.player;
-			var oldEnemy = game.enemy;
-
-			(function(oldPlayer, oldEnemy){
-				game.player = oldEnemy;
-				game.enemy = oldPlayer;
-			})(oldPlayer, oldEnemy);
-			
-			delete oldPlayer;
-			delete oldEnemy;
 		}
 		
 		var type = (game.player.type == 2) ? " (IA level "+ game.player.level +")" : "";
 		$("#curPlayer").html(game.player.name + type);
 	}
 	
+	/**
+	 * Tool permettant de formater un nombre de seconde en string
+	 *
+	 * @param {Integer} secs
+	 * @return {String}
+	 **/
 	game.formatTime = function(secs){
 		var hours = Math.floor(secs / (60 * 60));
    
@@ -405,6 +373,8 @@ game.watch("phase", function(prop,oldval,newval){
 	/**
 	 * Fonction permettant de repasser sur chaque combinaison, 
 	 * afin de vérifier si une nouvelle ligne n'a pas été complété.
+	 *
+	 * @return {Boolean} true si un nouveau moulin a été crée
 	 **/
 	game.millCheck = function(){
 		var isNew = false;
@@ -424,6 +394,9 @@ game.watch("phase", function(prop,oldval,newval){
 	
 	/**
 	 * Permet de savoir si un pion fait parti d'un moulin
+	 *
+	 * @param {domElement} domElement : emplacement du plateau de jeu
+	 * @return {Boolean}
 	 **/
 	game.checkIfPieceIsInMill = function(domElement){
 		var pieceID = parseInt($(domElement).attr('id').replace(new RegExp("piece"), ""));
@@ -439,6 +412,8 @@ game.watch("phase", function(prop,oldval,newval){
 	
 	/**
 	 * Permet de savoir si il existe un pion en dehors d'un moulin
+	 *
+	 * @return {Boolean}
 	 **/
 	game.checkIfOnePieceExistOutOfMill = function(){
 		var enemyPieces = $("#board .piece."+ game.enemy.color);
@@ -457,6 +432,12 @@ game.watch("phase", function(prop,oldval,newval){
 	 * - nombre de piece du player sur une ligne
 	 * - nombre de piece du computer sur une ligne
 	 * - place disponible sur une ligne
+	 *
+	 * @param {Integer} line : ID d'un moulin dans le tableau game.mills[]
+	 * @return {Integer} enemyCount : nombre de pion ennemi sur la ligne
+	 * @return {Integer} playerCount : nombre de pion du joueur courant sur la ligne
+	 * @return {Array[domElement]} available : tableau de domElement des emplacement dispo
+	 * @return {Array[domElement]} enemuPiece : tableau de domElement des pions ennemis
 	 **/
 	game.getPieceOnLine = function(line){
 		var playerCount = 0, enemyCount = 0;
@@ -480,6 +461,9 @@ game.watch("phase", function(prop,oldval,newval){
 	
 	/**
 	 * Permet la suppression d'un pion placé sur le plateau de jeu
+	 *
+	 * @param {domElement} target : L'emplacement sur lequel le pion que l'on doit supprimé est posé.
+	 * @return {Boolean}
 	 **/
 	game.removePiece = function(target){
 		if(!target.hasClass(game.enemy.color)){
@@ -504,6 +488,9 @@ game.watch("phase", function(prop,oldval,newval){
 	
 	/**
 	 * Permet le placement d'un pion sur le plateau de jeu
+	 *
+	 * @param {domElement} target
+	 * @return {Boolean}
 	 **/
 	game.placePiece = function(target){
 		if(game.player.piece === 0){
@@ -531,6 +518,10 @@ game.watch("phase", function(prop,oldval,newval){
 	
 	/**
 	 * Permet le déplacement d'un pion
+	 *
+	 * @param {domElement} startingPoint : L'emplacement de départ sur le plateau de jeu
+	 * @param {domElement} arrivalPoint : L'emplacement d'arrivé
+	 * @return {Boolean}
 	 **/
 	game.movePiece = function(startingPoint, arrivalPoint){
 		var startingPointID = parseInt(startingPoint.attr('id').replace(new RegExp("piece"), ""));
@@ -547,7 +538,7 @@ game.watch("phase", function(prop,oldval,newval){
 					var sPos = startingPoint.position();
 					var aPos = arrivalPoint.position();
 					
-					var clone = $('<div class="piece '+ game.player.color +'" style="top:'+sPos.top+'px;left:'+sPos.left+'px"></div>');
+					var clone = $('<div class="piece '+ game.player.color +'-clone" style="top:'+sPos.top+'px;left:'+sPos.left+'px"></div>');
 					
 					$("#board").append(clone);
 					
@@ -557,8 +548,8 @@ game.watch("phase", function(prop,oldval,newval){
 					arrivalPoint.addClass(game.player.color);
 					
 					clone.animate({top: aPos.top + 'px', left: aPos.left + 'px'}, 200, function(){
-						clone.remove();
 						arrivalPoint.show();
+						clone.remove();
 					});
 				}
 				
@@ -571,23 +562,17 @@ game.watch("phase", function(prop,oldval,newval){
 	
 	/**
 	 * Permet de savoir si un emplacement est libe ou non
-	 * return : 'true' si l'emplacement est libre
-	 *			'false' si il ne l'est pas
+	 *
+	 * @param {domElement} location : L'emplacement du plateau de jeu à checkker
+	 * @return {Boolean}
 	 **/
 	game.isFree = function(location){
 		return (!location.hasClass(game.enemy.color) && !location.hasClass(game.player.color));
 	}
-		
-	game.displayLogs = function(){
-		var data = "";
-		
-		for(var i = 0; i < game.logs.length; i++){
-			data += "<p>"+ game.logs[i] +"</p>";
-		}
-		
-		$("#logs").html(data);
-	}
 	
+	/**
+	 * Permet la mise en pause du jeu
+	 **/	
 	game.setPaused = function(){
 		$(".history .icon-pause").hide();
 		$(".history .icon-play").show();
@@ -595,6 +580,9 @@ game.watch("phase", function(prop,oldval,newval){
 		game.paused = 1;
 	}
 	
+	/**
+	 * Supprime la mise en pause du jeu
+	 **/
 	game.setPlay = function(){
 		$(".history .icon-pause").show();
 		$(".history .icon-play").hide();
@@ -605,6 +593,9 @@ game.watch("phase", function(prop,oldval,newval){
 			game.endTurn();
 	}
 	
+	/**
+	 * TO DO : Stockage des coups précédent, afin de pouvoir revenir en arrière dans le jeu.
+	 **/
 	game.stepBackward = function(){
 		var lastMove = game.history[game.history.length-1];
 
